@@ -47,7 +47,10 @@ mv qc71_laptop-%{qc71_version} qc71_src
 %build
 cd qc71_src
 make -C /usr/src/kernels/%{kver} M=$PWD modules
-xz -f qc71_laptop.ko
+# The kernel's in-tree xz decompressor only accepts CRC32 integrity checks.
+# Default xz uses CRC64/SHA-256, which the kernel rejects with status 6
+# ("decompression failed") and modprobe reports as -EINVAL.
+xz --check=crc32 -f qc71_laptop.ko
 
 %install
 mkdir -p %{buildroot}%{modpath}
