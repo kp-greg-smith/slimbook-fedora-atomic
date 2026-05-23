@@ -32,23 +32,21 @@ Full per-package diffs: `artifacts/db-diff-{official,minimal}.txt`.
 
 ## Install
 
-Build the RPM first (see *Build* below — pinned to your running kernel),
-then:
-
 ```bash
-# 1. Enable the upstream Slimbook repo (one curl, only needed for the libslimbook1 dependency)
+# 1. Enable the upstream Slimbook repo (one-off, needed for the libslimbook1 dependency)
 sudo curl -L -o /etc/yum.repos.d/home:Slimbook.repo \
     https://download.opensuse.org/repositories/home:/Slimbook/Fedora_44/home:Slimbook.repo
 
-# 2. Layer the RPM you just built
-sudo rpm-ostree install ~/rpmbuild/RPMS/x86_64/slimbook-executive-minimal-*.rpm
+# 2. Build (see above)
+./scripts/build-rpm.sh
 
-# 3. Reboot
+# 3. Layer the RPM you just built
+sudo rpm-ostree install ./artifacts/slimbook-executive-minimal-*.rpm
 sudo systemctl reboot
 ```
 
-After reboot, `lsmod | grep qc71_laptop` should show the module loaded
-and `slimbookctl info` should print the detected hardware profile.
+After reboot, `lsmod | grep qc71_laptop` shows the module loaded and
+`slimbookctl info` prints the detected hardware profile.
 
 ## Kernel-upgrade caveat
 
@@ -71,46 +69,61 @@ route is what you want — that's exactly what akmods buys you.
 
 ## Build
 
-The module is built once against the Atomic kernel, then packaged as a
-binary blob. Reproduce:
+Use `scripts/build-rpm.sh`. It spins up a disposable Fedora 44
+container with rootless **podman**, installs `kernel-devel` + `gcc` +
+`rpm-build` inside it, builds the module, and drops the RPM into
+`artifacts/`. Nothing is layered onto your Atomic host.
 
 ```bash
-# Inside any Fedora 44 system with kernel-devel matching the target Atomic kernel:
-sudo dnf install -y kernel-devel-7.0.9-205.fc44 gcc make rpm-build
+# Default: build against the latest kernel-devel available in F44 repos
+./scripts/build-rpm.sh
 
-# Pull the QC71 source from the Slimbook src.rpm
-rpm -i https://download.opensuse.org/repositories/home:/Slimbook/Fedora_44/src/slimbook-qc71-kmod-1.0.1-1.1.src.rpm
-# (extracts to ~/rpmbuild/SOURCES/)
-
-# Build the module against the target kernel
-KVER=7.0.9-205.fc44.x86_64
-cd ~/rpmbuild/SOURCES
-tar -xf qc71_laptop-*.tar.gz
-cd qc71_laptop-*
-make -C /usr/src/kernels/$KVER M=$PWD
-xz qc71_laptop.ko                # → qc71_laptop.ko.xz
-
-# Build the RPM
-cp qc71_laptop.ko.xz ~/rpmbuild/SOURCES/
-cp <this-repo>/rpm/slimbook-executive-minimal.spec ~/rpmbuild/SPECS/
-cp <this-repo>/rpm/README.md ~/rpmbuild/SOURCES/
-rpmbuild --define "dist .fc44" -ba ~/rpmbuild/SPECS/slimbook-executive-minimal.spec
+# Target a specific kernel (e.g. one that an upgrade is about to bring)
+./scripts/build-rpm.sh 7.0.9-205.fc44.x86_64
 ```
 
-If you want a different target kernel, edit the `%global kver …` line at
-the top of `rpm/slimbook-executive-minimal.spec` and rebuild.
+Output: `artifacts/slimbook-executive-minimal-2.0.0-1.fc44.x86_64.rpm`.
+
+The resulting RPM has only two declared dependencies:
+`Requires: libslimbook1` and `Requires: kernel-core-uname-r = <kver>`.
+
+## Upgrades
+
+When a kernel upgrade comes through `rpm-ostree update`, the pinned
+`Requires: kernel-core-uname-r = <old>` makes the transaction refuse to
+apply — your system stays on the old, working deployment. To move
+forward, rebuild the RPM for the new kernel and do the upgrade and the
+kmod swap in one transaction.
+
+`scripts/upgrade.sh` does this:
+
+```bash
+sudo ./scripts/upgrade.sh
+```
+
+It probes `rpm-ostree update`, parses the new kernel version out of the
+depsolve error, calls `build-rpm.sh` for that kernel, then stages
+`rpm-ostree update --uninstall slimbook-executive-minimal --install <new.rpm>`
+as one transaction. You reboot when it's done.
+
+For a deeper walkthrough including the verbatim VM outputs at each step,
+see `UPGRADE.md`.
 
 ## Files in this repo
 
 ```
+scripts/
+  build-rpm.sh                                            ← podman build, output → artifacts/
+  upgrade.sh                                              ← rpm-ostree update + swap in one go
 rpm/
-  slimbook-executive-minimal.spec                         ← source of truth; edit kver here
+  slimbook-executive-minimal.spec                         ← source of truth; spec auto-detects kver
   README.md                                               ← shipped inside the RPM
 artifacts/
   rpm-ostree-status-{clean,official,minimal}.txt          ← VM-captured proof of layer contents
   db-diff-{official,minimal}.txt                          ← exact per-package lists for each layer
 notes/
   01-upstream-repo-cataloged.md                           ← background: what's in the Slimbook repo
+UPGRADE.md                                                ← step-by-step verified upgrade walkthrough
 ```
 
 RPMs are deliberately not checked in (`*.rpm` is in `.gitignore`). The
