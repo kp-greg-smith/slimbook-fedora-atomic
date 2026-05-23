@@ -1,0 +1,10 @@
+State: idle
+Deployments:
+● ostree-unverified-registry:quay.io/fedora-ostree-desktops/sway-atomic:44
+                   Digest: sha256:a6c3101e282a859f30800b81e661d4080bebf18b0e19550cbf05091dfd954b14
+                  Version: 44.20260522.0 (2026-05-22T02:10:27Z)
+          LayeredPackages: slimbook-meta-common slimbook-meta-executive
+
+  ostree-unverified-registry:quay.io/fedora-ostree-desktops/sway-atomic:44
+                   Digest: sha256:a6c3101e282a859f30800b81e661d4080bebf18b0e19550cbf05091dfd954b14
+                  Version: 44.20260522.0 (2026-05-22T02:10:27Z)

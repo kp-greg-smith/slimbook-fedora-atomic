@@ -1,0 +1,16 @@
+akmod-slimbook-qc71-1.0.1-1.1.x86_64.rpm
+intel-undervolt-1.7-2.1.x86_64.rpm
+kmod-slimbook-qc71-1.0.1-1.1.x86_64.rpm
+libslimbook1-1.23.0-2.1.x86_64.rpm
+python3-slimbook-1.21.0-2.1.noarch.rpm
+slimbook-grub-fix-ecwake-24.4.0-4.1.x86_64.rpm
+slimbook-grub-fix-gpiowake-24.4.0-4.1.x86_64.rpm
+slimbook-grub-fix-psr-24.4.0-4.1.x86_64.rpm
+slimbook-meta-common-2.2-2.1.noarch.rpm
+slimbook-meta-executive-2.2-2.1.noarch.rpm
+slimbook-meta-gnome-2.2-2.1.noarch.rpm
+slimbook-meta-plasma-2.2-2.1.noarch.rpm
+slimbook-qc71-kmod-common-1.0.1-1.1.noarch.rpm
+slimbook-quirk-i8042-reset-1.2-3.1.x86_64.rpm
+slimbook-quirk-i8042-wakeup-1.2-3.1.x86_64.rpm
+slimbook-service-1.0.10-3.1.noarch.rpm

@@ -1,0 +1,5 @@
+work/vm/
+work/upstream-rpms/_extracted/
+work/upstream-rpms/_category/
+work/upstream-rpms/*.rpm
+*.rpm

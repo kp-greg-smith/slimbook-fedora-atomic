@@ -1,0 +1,5 @@
+ostree diff commit from: 4bb0b02e113d1402d6ec3fff8ba9e6ab2fc1d10dcb09a6b22a4d2d8bcfa9afa6
+ostree diff commit to:   514d8a5411ab48c809e981102c0b1ca143fe2d041b5a4bc2890acaa86ad39f9f
+Added:
+  libslimbook1-1.23.0-2.1.x86_64
+  slimbook-executive-minimal-2.0.0-1.fc44.x86_64
